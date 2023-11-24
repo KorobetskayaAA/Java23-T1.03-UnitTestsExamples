@@ -1,21 +1,21 @@
 package ru.teamscore.java23.j1_03.amortization;
 
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+
+import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class AmortizationTest {
 
     class AmortizationMock extends Amortization {
-        private final double nextAmortization;
+        private final BigDecimal nextAmortization;
         public AmortizationMock(double startValue, double nextAmortization) {
             super(startValue);
-            this.nextAmortization = nextAmortization;
+            this.nextAmortization = BigDecimal.valueOf(nextAmortization);
         }
         @Override
-        protected double getNextAmortizationNotRounded() {
+        protected BigDecimal getNextAmortizationNotRounded() {
             return nextAmortization;
         }
     }
@@ -70,7 +70,7 @@ class AmortizationTest {
         assertEquals(0, amortization.getMonth());
         for (int i = 1; startValue >= i * amortizationValue; i++) {
             amortization.deprecate();
-            assertEquals(startValue - i * amortizationValue, amortization.getDepricatedValue());
+            assertEquals(startValue - i * amortizationValue, amortization.getDepricatedValue(), 0.001);
             assertEquals(i, amortization.getMonth());
         }
         amortization.deprecate();

@@ -1,5 +1,8 @@
 package ru.teamscore.java23.j1_03.amortization;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 /**
  * <h1>Расчет амортизации</h1>
  * Амортизация - постепенное списание стоимости основных средств
@@ -9,27 +12,29 @@ package ru.teamscore.java23.j1_03.amortization;
  * Методов расчета амортизации несколько.
  */
 public abstract class Amortization {
-    protected final double startValue; // первоначальная стоимость
-    protected double depricatedValue; // остаточная стоимость
+    protected final BigDecimal startValue; // первоначальная стоимость в копейках
+    protected BigDecimal depricatedValue; // остаточная стоимость в копейках
     private int month = 0; // месяц
 
     public Amortization(double startValue) {
-        this.startValue = startValue;
-        depricatedValue = startValue;
+        this.startValue = BigDecimal
+                .valueOf(startValue)
+                .setScale(2, RoundingMode.HALF_UP);
+        depricatedValue = this.startValue;
     }
 
     /**
      * Начальная стоимость объекта.
      */
     public double getStartValue() {
-        return startValue;
+        return startValue.doubleValue();
     }
 
     /**
      * Остаточная стоимость объекта на текущий месяц.
      */
     public double getDepricatedValue() {
-        return depricatedValue;
+        return depricatedValue.doubleValue();
     }
 
     /**
@@ -42,16 +47,25 @@ public abstract class Amortization {
     /**
      * Сумма амортизационных отчислений за текущий месяц без округления до копеек.
      */
-    protected abstract double getNextAmortizationNotRounded();
+    protected abstract BigDecimal getNextAmortizationNotRounded();
+
+    /**
+     * Сумма амортизационных отчислений за текущий месяц с округлением до копеек.
+     */
+    private BigDecimal getNextAmortizationDecimal() {
+        if (getNextAmortizationNotRounded().compareTo(depricatedValue) > 0) {
+            return depricatedValue;
+        }
+        return getNextAmortizationNotRounded()
+                .setScale(2, RoundingMode.HALF_UP);
+    }
 
     /**
      * Сумма амортизационных отчислений за текущий месяц с округлением до копеек.
      */
     public double getNextAmortization() {
-        if (getNextAmortizationNotRounded() > depricatedValue) {
-            return depricatedValue;
-        }
-        return Math.round(getNextAmortizationNotRounded() * 100) / 100.0;
+        return getNextAmortizationDecimal()
+                .doubleValue();
     }
 
 
@@ -59,7 +73,9 @@ public abstract class Amortization {
      * Общая сумма амортизации за весь период.
      */
     public final double getTotalAmortization() {
-        return startValue - depricatedValue;
+        return startValue
+                .subtract(depricatedValue)
+                .doubleValue();
     }
 
     /**
@@ -67,6 +83,6 @@ public abstract class Amortization {
      */
     public void deprecate() {
         month++;
-        depricatedValue -= getNextAmortization();
+        depricatedValue = depricatedValue.subtract(getNextAmortizationDecimal());
     }
 }
